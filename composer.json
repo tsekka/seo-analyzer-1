@@ -1,20 +1,21 @@
 {
-  "name": "grgk/seo-analyzer",
-  "description": "Seo Analyzer",
+  "name": "csoutham/seo-analyzer",
+  "description": "SEO Analyzer updated for PHP v7.4/v8.0",
   "type": "library",
   "license": "MIT",
   "require": {
-    "php": ">=7.1",
+    "php": "^7.4|^8.0",
     "ext-dom": "*",
     "ext-libxml": "*",
-    "guzzlehttp/guzzle": "^6.3",
-    "symfony/cache": "^4.2",
-    "symfony/translation": "^4.2",
-    "symfony/yaml": "^4.2",
+    "guzzlehttp/guzzle": "^7.3",
+    "symfony/cache": "^5.3",
+    "symfony/translation": "^5.3",
+    "symfony/yaml": "^5.3",
     "psr/simple-cache": "^1.0"
   },
   "require-dev": {
-    "phpunit/phpunit": "^7"
+    "phpunit/phpunit": "^9.3",
+    "ext-json": "*"
   },
   "autoload": {
     "psr-4": {
