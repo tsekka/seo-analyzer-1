@@ -2,7 +2,10 @@
 
 namespace SeoAnalyzer\Metric\Page;
 
-class KeywordDensityMetric extends AbstractKeywordDensityMetric
+use SeoAnalyzer\Factor;
+use SeoAnalyzer\Metric\KeywordBasedMetricInterface;
+
+class KeywordDensityMetric extends AbstractKeywordDensityMetric implements KeywordBasedMetricInterface
 {
     public $description = 'Keyword density in page content';
 
@@ -13,7 +16,7 @@ class KeywordDensityMetric extends AbstractKeywordDensityMetric
     {
         $keywords = $this->analyseKeywords($this->value['text'], $this->value['stop_words']);
         unset($this->value);
-        $this->value['keywords'] = $keywords;
+        $this->value[Factor::KEYWORDS] = $keywords;
         $overusedWords = $this->getOverusedKeywords($keywords);
         if (!empty($this->keyword)) {
             return $this->analyzeWithKeyword($keywords, $overusedWords);
@@ -30,20 +33,27 @@ class KeywordDensityMetric extends AbstractKeywordDensityMetric
     {
         $this->name = 'KeywordDensityKeyword';
         unset($this->value);
-        $this->value['keywords'] = $keywords;
-        $this->value['keyword'] = $this->keyword;
-        foreach ($keywords as $group) {
-            foreach ($group as $phrase => $count) {
-                if (stripos($phrase, $this->keyword) !== false) {
-                    if (in_array($this->keyword, $overusedWords)) {
-                        $this->impact = 4;
-                        return 'The key phrase is overused on the site. Try to reduce its occurrence';
-                    }
-                    return 'Good! The key phrase is present in most popular keywords on the site';
+        $this->value[Factor::KEYWORDS] = $keywords;
+        $this->value[Factor::KEYWORD] = $this->keyword;
+        $isPresent = false;
+        foreach ($this->getPhrases() as $phrase) {
+            if (stripos($phrase, $this->keyword) !== false) {
+                if (in_array($this->keyword, $overusedWords)) {
+                    $this->impact = 4;
+                    return 'The key phrase is overused on the site. Try to reduce its occurrence';
                 }
+                $isPresent = true;
             }
         }
-        $this->impact = 4;
-        return 'You should consider adding your keyword to the site content';
+        if (!$isPresent) {
+            $this->impact = 4;
+            return 'You should consider adding your keyword to the site content';
+        }
+        return 'Good! The key phrase is present in most popular keywords on the site';
+    }
+
+    private function getPhrases()
+    {
+        return array_keys(array_merge(...$this->value[Factor::KEYWORDS]));
     }
 }

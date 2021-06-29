@@ -2,12 +2,15 @@
 
 namespace SeoAnalyzer\Metric;
 
+use ReflectionException;
+
 class MetricFactory
 {
     /**
      * @param string $key
      * @param null $inputData
      * @return mixed
+     * @throws ReflectionException
      */
     public static function get(string $key, $inputData = null)
     {
@@ -18,12 +21,8 @@ class MetricFactory
         }
         $class.= 'Metric';
         if (class_exists($class)) {
-            $metric = new $class($inputData);
-            if (empty($metric->name)) {
-                throw new \InvalidArgumentException('Missing metric name for class: ' . $class);
-            }
-            return $metric;
+            return new $class($inputData);
         }
-        throw new \ReflectionException('Metric class ' . $class .' not exists');
+        throw new ReflectionException('Metric class ' . $class .' not exists');
     }
 }

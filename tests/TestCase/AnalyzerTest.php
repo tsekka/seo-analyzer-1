@@ -1,10 +1,10 @@
 <?php
+
 namespace Tests\TestCase;
 
-use InvalidArgumentException;
-use ReflectionException;
 use SeoAnalyzer\Analyzer;
 use SeoAnalyzer\HttpClient\Exception\HttpException;
+use ReflectionException;
 use SeoAnalyzer\Metric\AbstractMetric;
 use SeoAnalyzer\Page;
 use Tests\TestCase;
@@ -64,6 +64,8 @@ class AnalyzerTest extends TestCase
 
     /**
      * @expectedException \SeoAnalyzer\HttpClient\Exception\HttpException
+     *
+     * @throws ReflectionException
      */
     public function testAnalyzeUrlFailOnInvalidUrl()
     {
@@ -79,6 +81,24 @@ class AnalyzerTest extends TestCase
         $clientMock = $this->getClientMock();
         $analyzer = new Analyzer(null, $clientMock);
         $results = $analyzer->analyzeFile(dirname(__DIR__) . '/data/test.html');
+        $this->assertTrue(is_array($results));
+        $this->assertEquals(count($analyzer->getMetrics()), count($results));
+        $this->assertArrayHasKey('analysis', current($results));
+        $this->assertArrayHasKey('name', current($results));
+        $this->assertArrayHasKey('description', current($results));
+        $this->assertArrayHasKey('value', current($results));
+        $this->assertArrayHasKey('negative_impact', current($results));
+    }
+
+    /**
+     * @throws ReflectionException
+     */
+    public function testAnalyzeHtmlPass()
+    {
+        $clientMock = $this->getClientMock();
+        $analyzer = new Analyzer(null, $clientMock);
+        $htmlString =  file_get_contents(dirname(__DIR__) . '/data/test.html');
+        $results = $analyzer->analyzeHtml($htmlString);
         $this->assertTrue(is_array($results));
         $this->assertEquals(count($analyzer->getMetrics()), count($results));
         $this->assertArrayHasKey('analysis', current($results));
@@ -108,10 +128,7 @@ class AnalyzerTest extends TestCase
     }
 
     /**
-     * @expectedException InvalidArgumentException
-     *
-     * @throws ReflectionException
-     * @throws HttpException
+     * @expectedException \InvalidArgumentException No
      */
     public function testAnalyzeFailOnNoPage()
     {

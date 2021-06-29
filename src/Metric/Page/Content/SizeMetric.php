@@ -8,32 +8,42 @@ class SizeMetric extends AbstractMetric
 {
     public $description = 'The size of the page';
 
+    protected $results = [
+        'read_error' => [
+            self::IMPACT => 10,
+            self::MESSAGE => 'Can not read your page content'
+        ],
+        'empty_content' => [
+            self::IMPACT => 10,
+            self::MESSAGE => 'Looks that your site content is empty'
+        ],
+        'very_big' => [
+            self::IMPACT => 3,
+            self::MESSAGE => 'The site is very big. You should consider rebuilding the page to optimise its size'
+        ],
+        'too_big' => [
+            self::IMPACT => 1,
+            self::MESSAGE => 'You should consider some optimisation of the page to decrease its size'
+        ],
+    ];
+
+    public function __construct($inputData)
+    {
+        parent::__construct($inputData);
+        $conditions = [
+            'read_error' => $this->value === false,
+            'empty_content' => $this->value === 0,
+            'very_big' => $this->value > 80000,
+            'too_big' => $this->value > 30000,
+        ];
+        $this->setUpResultsConditions($conditions);
+    }
+
     /**
      * @inheritdoc
      */
     public function analyze(): string
     {
-        switch (true) {
-            case ($this->value === false):
-                $this->impact = 10;
-                $message = "Can not read your page content";
-                break;
-            case ($this->value === 0):
-                $this->impact = 10;
-                $message = "Looks that your site content is empty";
-                break;
-            case ($this->value > 80000):
-                $this->impact = 3;
-                $message = "The site is very big. You should consider rebuilding the page to optimise it's size";
-                break;
-            case ($this->value > 30000):
-                $this->impact = 1;
-                $message = "You should consider some optimisation of the page to decrease it's size";
-                break;
-            default:
-                $message = 'The size of your page is ok';
-                break;
-        }
-        return $message;
+        return $this->checkTheResults('The size of your page is ok');
     }
 }

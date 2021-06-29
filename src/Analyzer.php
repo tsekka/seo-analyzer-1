@@ -8,6 +8,7 @@ use SeoAnalyzer\HttpClient\Client;
 use SeoAnalyzer\HttpClient\ClientInterface;
 use SeoAnalyzer\HttpClient\Exception\HttpException;
 use SeoAnalyzer\Metric\MetricFactory;
+use SeoAnalyzer\Metric\MetricInterface;
 use Symfony\Component\Translation\Loader\YamlFileLoader;
 use Symfony\Component\Translation\Translator;
 
@@ -26,12 +27,17 @@ class Analyzer
     /**
      * @var array Metrics array
      */
-    public $metrics;
+    public $metrics = [];
 
     /**
      * @var ClientInterface
      */
     public $client;
+
+    /**
+     * @var Translator
+     */
+    public $translator;
 
     /**
      * @param Page|null $page Page to analyze
@@ -86,6 +92,21 @@ class Analyzer
     }
 
     /**
+     * Analyzes html document from string.
+     *
+     * @param string $htmlString
+     * @param string|null $locale
+     * @return array
+     * @throws ReflectionException
+     */
+    public function analyzeHtml(string $htmlString, string $locale = null): array
+    {
+        $this->page = new Page(null, $locale, $this->client);
+        $this->page->content = $htmlString;
+        return $this->analyze();
+    }
+
+    /**
      * Starts analysis of a Page.
      *
      * @return array
@@ -96,22 +117,13 @@ class Analyzer
         if (empty($this->page)) {
             throw new InvalidArgumentException('No Page to analyze');
         }
-        $translator = $this->getTranslator($this->locale);
-        $results = [];
         if (empty($this->metrics)) {
             $this->metrics = $this->getMetrics();
         }
-        if (!empty($this->metrics)) {
-            foreach ($this->metrics as $metric) {
-                if ($metric && $analysisResult = $metric->analyze()) {
-                    $results[$metric->name] = [
-                        'analysis' => $translator->trans($analysisResult),
-                        'name' => $metric->name,
-                        'description' => $translator->trans($metric->description),
-                        'value' => $metric->value,
-                        'negative_impact' => $metric->impact,
-                    ];
-                }
+        $results = [];
+        foreach ($this->metrics as $metric) {
+            if ($analysisResult = $metric->analyze()) {
+                $results[$metric->name] = $this->formatResults($metric, $analysisResult);
             }
         }
         return $results;
@@ -176,18 +188,37 @@ class Analyzer
      * Sets up the translator for current locale.
      *
      * @param string $locale
-     * @return Translator
      */
-    public function getTranslator(string $locale): Translator
+    public function setUpTranslator(string $locale)
     {
-        $translator = new Translator($locale);
-        $translator->setFallbackLocales(['en_GB']);
+        $this->translator = new Translator($locale);
+        $this->translator->setFallbackLocales(['en_GB']);
         $yamlLoader = new YamlFileLoader();
-        $translator->addLoader('yaml', $yamlLoader);
+        $this->translator->addLoader('yaml', $yamlLoader);
         $localeFilename = dirname(__DIR__) . '/locale/' . $locale . '.yml';
         if (is_file($localeFilename)) {
-            $translator->addResource('yaml', $localeFilename, $locale);
+            $this->translator->addResource('yaml', $localeFilename, $locale);
         }
-        return $translator;
+    }
+
+    /**
+     * Formats metric analysis results.
+     *
+     * @param MetricInterface $metric
+     * @param $results
+     * @return array
+     */
+    protected function formatResults(MetricInterface $metric, string $results): array
+    {
+        if (empty($this->translator)) {
+            $this->setUpTranslator($this->locale);
+        }
+        return [
+            'analysis' => $this->translator->trans($results),
+            'name' => $metric->name,
+            'description' => $this->translator->trans($metric->description),
+            'value' => $metric->value,
+            'negative_impact' => $metric->impact,
+        ];
     }
 }
