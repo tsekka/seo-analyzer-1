@@ -49,7 +49,10 @@ class Parser extends AbstractParser
         $alts = [];
         if ($this->getDomElements('img')->length > 0) {
             foreach ($this->getDomElements('img') as $img) {
-                $alts[] = trim($img->getAttribute('alt'));
+	            $alts[] = [
+		            'alt' => trim($img->getAttribute('alt')),
+		            'src' => trim($img->getAttribute('src')),
+	            ];
             }
         }
         return $alts;

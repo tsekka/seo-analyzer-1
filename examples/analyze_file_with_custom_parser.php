@@ -14,16 +14,16 @@ use SeoAnalyzer\Page;
 use SeoAnalyzer\Parser\ExampleCustomParser;
 
 try {
-    $page = new Page('https://www.msn.com/pl-pl');
-    $parser = new ExampleCustomParser();
-    $page->parser = $parser;
-    $analyzer = new Analyzer($page);
-    $analyzer->metrics = $page->setMetrics([Factor::ALTS]);
-    $results = $analyzer->analyze();
+	$page = new Page('https://www.msn.com/pl-pl');
+	$parser = new ExampleCustomParser();
+	$page->parser = $parser;
+	$analyzer = new Analyzer($page);
+	$analyzer->metrics = $page->setMetrics([Factor::ALTS]);
+	$results = $analyzer->analyze();
 } catch (HttpException $e) {
-    echo "Error loading page: " . $e->getMessage();
+	echo "Error loading page: " . $e->getMessage();
 } catch (ReflectionException $e) {
-    echo "Error loading metric file: " . $e->getMessage();
+	echo "Error loading metric file: " . $e->getMessage();
 }
 
 print_r($results);
