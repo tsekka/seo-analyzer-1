@@ -8,9 +8,9 @@
     "ext-dom": "*",
     "ext-libxml": "*",
     "guzzlehttp/guzzle": "^7.3",
-    "symfony/cache": "^5.3",
-    "symfony/translation": "^5.2",
-    "symfony/yaml": "^5",
+    "symfony/cache": "^5.3|^6",
+    "symfony/translation": "^5.2|^6",
+    "symfony/yaml": "^5|^6",
     "psr/simple-cache": "^1.0"
   },
   "require-dev": {
